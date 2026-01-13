@@ -20,10 +20,24 @@ const decodePlanning = (schedule) =>
 		'Ve': 'vendredi'
 	};
 
+	const dayOrder = {
+		'Lu': 0,
+		'Ma': 1,
+		'Me': 2,
+		'Je': 3,
+		'Ve': 4
+	};
+
 	const times = {
 		'Md': '8h30',
 		'Mf': '10h00',
 		'Ap': '14h00'
+	};
+
+	const timeOrder = {
+		'Md': 0,
+		'Mf': 1,
+		'Ap': 2
 	};
 
 	const products = {
@@ -42,11 +56,13 @@ const decodePlanning = (schedule) =>
 		const timeCode = entry.substring(3, 5);
 		const productCode = entry.substring(5, 7);
 
-		const key = weekCode + dayCode + timeCode;
+		// Create a sortable key: Week (1-4), Day Index, Time Index
+		// This ensures Week -> Day -> Time sorting order
+		const sortKey = `${weekCode}-${dayOrder[dayCode]}-${timeOrder[timeCode]}`;
 
-		if (!grouped.has(key))
+		if (!grouped.has(sortKey))
 		{
-			grouped.set(key, {
+			grouped.set(sortKey, {
 				week: weeks[weekCode],
 				day: days[dayCode],
 				time: times[timeCode],
@@ -57,14 +73,17 @@ const decodePlanning = (schedule) =>
 		const productLabel = products[productCode];
 		if (productLabel)
 		{
-			grouped.get(key).productList.push(productLabel);
+			grouped.get(sortKey).productList.push(productLabel);
 		}
 	}
 
+	const sortedKeys = Array.from(grouped.keys()).sort();
 	const resultParts = [];
 
-	for (const item of grouped.values())
+	for (const key of sortedKeys)
 	{
+		const item = grouped.get(key);
+		item.productList.sort((a, b) => a.localeCompare(b, 'fr'));
 		const productString = item.productList.join(', ');
 		resultParts.push(`${item.week} ${item.day} ${item.time}: ${productString}.`);
 	}
