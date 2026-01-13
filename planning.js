@@ -197,255 +197,88 @@ const decodePlanning = (schedule) =>
 };
 
 /**
-
  * Takes an encoded schedule, compresses it, and returns it in a sorted canonical form.
-
  */
-
 const canonicalizeSchedule = (schedule) =>
-
 {
-
 	if (!schedule)
-
 	{
-
 		return '';
-
 	}
 
-
-
 	const compressed = compressPlanning(schedule);
-
 	const entries = Array.from(parseSchedule(compressed));
-
-
 
 	const { DAY_ORDER, TIME_ORDER, PRODUCTS } = PLANNING_CONSTANTS;
 
-
-
 	entries.sort((a, b) =>
-
 	{
-
 		// Sort by Week Code (0 comes before 1, 2, 3, 4)
-
 		if (a.weekCode !== b.weekCode)
-
 		{
-
 			return a.weekCode.localeCompare(b.weekCode);
-
 		}
-
 		// Sort by Day Order
-
 		if (a.dayCode !== b.dayCode)
-
 		{
-
 			return DAY_ORDER[a.dayCode] - DAY_ORDER[b.dayCode];
-
 		}
-
 		// Sort by Time Order
-
 		if (a.timeCode !== b.timeCode)
-
 		{
-
 			return TIME_ORDER[a.timeCode] - TIME_ORDER[b.timeCode];
-
 		}
-
 		// Sort by Product Label (alphabetical)
-
 		const labelA = PRODUCTS[a.productCode] || '';
-
 		const labelB = PRODUCTS[b.productCode] || '';
-
 		return labelA.localeCompare(labelB, 'fr');
-
 	});
 
-
-
 	return entries.map(e => e.weekCode + e.dayCode + e.timeCode + e.productCode).join('');
-
 };
 
-
-
 /**
-
-
-
  * Encodes a list of planning objects into a schedule string.
-
-
-
  * Input: Array of objects { week, day, time, product|products }
-
-
-
  *        where properties are the codes (e.g., '1', 'Lu', 'Md', 'Fr').
-
-
-
  */
-
-
-
 const encodePlanning = (entries) =>
-
-
-
 {
-
-
-
 	if (!Array.isArray(entries))
-
-
-
 	{
-
-
-
 		return '';
-
-
-
 	}
-
-
-
-
-
-
 
 	let schedule = '';
 
-
-
-
-
-
-
 	for (const entry of entries)
-
-
-
 	{
-
-
-
 		const { week, day, time, product, products } = entry;
-
-
-
 		const productList = products || (product ? [product] : []);
 
-
-
-
-
-
-
 		for (const p of productList)
-
-
-
 		{
-
-
-
 			// Basic validation could be added here checking against PLANNING_CONSTANTS
-
-
-
 			if (week && day && time && p)
-
-
-
 			{
-
-
-
 				schedule += week + day + time + p;
-
-
-
 			}
-
-
-
 		}
-
-
-
 	}
 
-
-
-
-
-
-
 	return schedule;
-
-
-
 };
 
-
-
-
-
-
-
 // Node.js Compatibility Guard
-
-
-
 // This block will be ignored in Google Apps Script but executed in Node.js
-
-
-
 if (typeof module !== 'undefined')
-
-
-
 {
-
-
-
 	module.exports = {
-
-
-
 		decodePlanning,
-
-
-
 		compressPlanning,
-
-
-
 		canonicalizeSchedule,
-
-
-
 		encodePlanning
-
-
-
 	};
-
-
-
 }
 
 
