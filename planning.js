@@ -266,7 +266,7 @@ const encodePlanning = (entries) =>
 		}
 	}
 
-	return schedule;
+	return canonicalizeSchedule(schedule);
 };
 
 // Node.js Compatibility Guard

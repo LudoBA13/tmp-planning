@@ -44,4 +44,16 @@ runTest(
 	'0JeMfSu'
 );
 
+// Test canonicalization (compression + sorting)
+runTest(
+	[
+		{ week: '1', day: 'Je', time: 'Md', product: 'Se' },
+		{ week: '2', day: 'Je', time: 'Md', product: 'Se' },
+		{ week: '3', day: 'Je', time: 'Md', product: 'Se' },
+		{ week: '4', day: 'Je', time: 'Md', product: 'Se' },
+		{ week: '1', day: 'Ma', time: 'Md', product: 'Fr' }
+	],
+	'0JeMdSe1MaMdFr'
+);
+
 console.log('All encoding tests passed!');
