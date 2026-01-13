@@ -269,6 +269,85 @@ const encodePlanning = (entries) =>
 	return canonicalizeSchedule(schedule);
 };
 
+/**
+ * Parses a human-readable schedule string back into the encoded format.
+ * Example: "1er lundi 8h30: Frais." -> "1LuMdFr"
+ */
+const parseHumanReadable = (text) =>
+{
+	if (!text)
+	{
+		return '';
+	}
+
+	const { WEEKS, DAYS, TIMES, PRODUCTS } = PLANNING_CONSTANTS;
+
+	// Reverse mappings
+	const weeksRev = Object.fromEntries(Object.entries(WEEKS).map(([k, v]) => [v, k]));
+	const daysRev = Object.fromEntries(Object.entries(DAYS).map(([k, v]) => [v, k]));
+	const timesRev = Object.fromEntries(Object.entries(TIMES).map(([k, v]) => [v, k]));
+	const productsRev = Object.fromEntries(Object.entries(PRODUCTS).map(([k, v]) => [v, k]));
+
+	// Split by period to get sentences, filtering empty ones
+	const sentences = text.split('.').map(s => s.trim()).filter(s => s.length > 0);
+	const entries = [];
+
+	for (const sentence of sentences)
+	{
+		// Format: "Week Day Time: Product, Product"
+		// Split into Header and Product List
+		const [headerStr, productsStr] = sentence.split(':').map(s => s.trim());
+
+		if (!headerStr || !productsStr) continue;
+
+		// Parse Header: "Week Day Time"
+		// Example: "1er lundi 8h30" or "Tous les lundis 8h30"
+		const headerParts = headerStr.split(' ');
+		
+		let weekCode = null;
+		let dayCode = null;
+		let timeCode = null;
+
+		// Identify Time (last part of header)
+		const timeLabel = headerParts.pop(); // "8h30"
+		timeCode = timesRev[timeLabel];
+
+		// Identify Day (second to last part, handle plural "s")
+		let dayLabel = headerParts.pop(); // "lundi" or "lundis"
+		if (dayLabel.endsWith('s'))
+		{
+			dayLabel = dayLabel.slice(0, -1);
+		}
+		dayCode = daysRev[dayLabel];
+
+		// Identify Week (remaining parts joined)
+		const weekLabel = headerParts.join(' '); // "1er" or "Tous les"
+		weekCode = weeksRev[weekLabel];
+
+		// Parse Products
+		const productLabels = productsStr.split(',').map(s => s.trim());
+
+		if (weekCode && dayCode && timeCode)
+		{
+			for (const pLabel of productLabels)
+			{
+				const productCode = productsRev[pLabel];
+				if (productCode)
+				{
+					entries.push({
+						week: weekCode,
+						day: dayCode,
+						time: timeCode,
+						product: productCode
+					});
+				}
+			}
+		}
+	}
+
+	return encodePlanning(entries);
+};
+
 // Node.js Compatibility Guard
 // This block will be ignored in Google Apps Script but executed in Node.js
 if (typeof module !== 'undefined')
@@ -277,7 +356,8 @@ if (typeof module !== 'undefined')
 		decodePlanning,
 		compressPlanning,
 		canonicalizeSchedule,
-		encodePlanning
+		encodePlanning,
+		parseHumanReadable
 	};
 }
 
