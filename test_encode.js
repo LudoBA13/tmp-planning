@@ -56,4 +56,28 @@ runTest(
 	'0JeMdSe1MaMdFr'
 );
 
+// Test sorting with out-of-order input (days)
+runTest(
+	[
+		{ week: '1', day: 'Je', time: 'Md', product: 'Se' },
+		{ week: '1', day: 'Ma', time: 'Md', product: 'Fr' }
+	],
+	'1MaMdFr1JeMdSe'
+);
+
+// Test sorting with out-of-order input (weeks)
+runTest(
+	[
+		{ week: '2', day: 'Ma', time: 'Md', product: 'Fr' },
+		{ week: '1', day: 'Ma', time: 'Md', product: 'Fr' }
+	],
+	'1MaMdFr2MaMdFr'
+);
+
+// Test sorting with out-of-order products
+runTest(
+	[{ week: '1', day: 'Ma', time: 'Md', products: ['Se', 'Fr'] }],
+	'1MaMdFr1MaMdSe'
+);
+
 console.log('All encoding tests passed!');
