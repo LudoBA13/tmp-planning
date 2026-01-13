@@ -278,22 +278,176 @@ const canonicalizeSchedule = (schedule) =>
 
 
 
-// Node.js Compatibility Guard
+/**
 
-// This block will be ignored in Google Apps Script but executed in Node.js
 
-if (typeof module !== 'undefined')
+
+ * Encodes a list of planning objects into a schedule string.
+
+
+
+ * Input: Array of objects { week, day, time, product|products }
+
+
+
+ *        where properties are the codes (e.g., '1', 'Lu', 'Md', 'Fr').
+
+
+
+ */
+
+
+
+const encodePlanning = (entries) =>
+
+
 
 {
 
+
+
+	if (!Array.isArray(entries))
+
+
+
+	{
+
+
+
+		return '';
+
+
+
+	}
+
+
+
+
+
+
+
+	let schedule = '';
+
+
+
+
+
+
+
+	for (const entry of entries)
+
+
+
+	{
+
+
+
+		const { week, day, time, product, products } = entry;
+
+
+
+		const productList = products || (product ? [product] : []);
+
+
+
+
+
+
+
+		for (const p of productList)
+
+
+
+		{
+
+
+
+			// Basic validation could be added here checking against PLANNING_CONSTANTS
+
+
+
+			if (week && day && time && p)
+
+
+
+			{
+
+
+
+				schedule += week + day + time + p;
+
+
+
+			}
+
+
+
+		}
+
+
+
+	}
+
+
+
+
+
+
+
+	return schedule;
+
+
+
+};
+
+
+
+
+
+
+
+// Node.js Compatibility Guard
+
+
+
+// This block will be ignored in Google Apps Script but executed in Node.js
+
+
+
+if (typeof module !== 'undefined')
+
+
+
+{
+
+
+
 	module.exports = {
+
+
 
 		decodePlanning,
 
+
+
 		compressPlanning,
 
-		canonicalizeSchedule
+
+
+		canonicalizeSchedule,
+
+
+
+		encodePlanning
+
+
 
 	};
 
+
+
 }
+
+
+
+
