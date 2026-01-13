@@ -1,4 +1,4 @@
-const decodePlanning = require('./planning');
+const { decodePlanning } = require('./planning');
 
 const runTest = (input, expected) =>
 {
@@ -25,6 +25,8 @@ runTest('2MaMdSe1MaMdFr', '1er mardi 8h30: Frais. 2e mardi 8h30: Sec.');
 runTest('1MaMdSe1MaMfFr', '1er mardi 8h30: Sec. 1er mardi 10h00: Frais.');
 runTest('1MaApSe1MaMdFr', '1er mardi 8h30: Frais. 1er mardi 14h00: Sec.');
 runTest('1MaMdFr1MaApSe', '1er mardi 8h30: Frais. 1er mardi 14h00: Sec.');
+runTest('0JeMdSe', 'Tous les jeudis 8h30: Sec.');
 runTest('1JeMdSe2JeMdSe3JeMdSe4JeMdSe', 'Tous les jeudis 8h30: Sec.');
+runTest('1JeMdFr1JeMdSe1JeMdSu2JeMdSe3JeMdSe4JeMdSe', 'Tous les jeudis 8h30: Sec. 1er jeudi 8h30: Frais, Surgelé.');
 
 console.log('All tests passed!');

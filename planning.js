@@ -1,3 +1,49 @@
+const compressPlanning = (schedule) =>
+{
+	if (!schedule)
+	{
+		return '';
+	}
+
+	const groupedBySuffix = new Map();
+
+	for (let i = 0; i < schedule.length; i += 7)
+	{
+		const entry = schedule.substring(i, i + 7);
+		const weekCode = entry.charAt(0);
+		const suffix = entry.substring(1);
+
+		if (!groupedBySuffix.has(suffix))
+		{
+			groupedBySuffix.set(suffix, new Set());
+		}
+		groupedBySuffix.get(suffix).add(weekCode);
+	}
+
+	let result = '';
+	const requiredWeeks = new Set(['1', '2', '3', '4']);
+
+	for (const [suffix, weeks] of groupedBySuffix.entries())
+	{
+		const hasAllWeeks = requiredWeeks.size === weeks.size && [...requiredWeeks].every(w => weeks.has(w));
+		
+		if (hasAllWeeks)
+		{
+			result += '0' + suffix;
+		}
+		else
+		{
+			const sortedWeeks = Array.from(weeks).sort();
+			for (const w of sortedWeeks)
+			{
+				result += w + suffix;
+			}
+		}
+	}
+
+	return result;
+};
+
 const decodePlanning = (schedule) =>
 {
 	if (!schedule)
@@ -5,7 +51,10 @@ const decodePlanning = (schedule) =>
 		return '';
 	}
 
+	schedule = compressPlanning(schedule);
+
 	const weeks = {
+		'0': 'Tous les',
 		'1': '1er',
 		'2': '2e',
 		'3': '3e',
@@ -85,10 +134,20 @@ const decodePlanning = (schedule) =>
 		const item = grouped.get(key);
 		item.productList.sort((a, b) => a.localeCompare(b, 'fr'));
 		const productString = item.productList.join(', ');
-		resultParts.push(`${item.week} ${item.day} ${item.time}: ${productString}.`);
+		
+		let dayLabel = item.day;
+		if (item.week === 'Tous les')
+		{
+			dayLabel += 's';
+		}
+		
+		resultParts.push(`${item.week} ${dayLabel} ${item.time}: ${productString}.`);
 	}
 
 	return resultParts.join(' ');
 };
 
-module.exports = decodePlanning;
+module.exports = {
+	decodePlanning,
+	compressPlanning
+};
