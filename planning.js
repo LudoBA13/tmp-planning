@@ -132,20 +132,17 @@ const compressPlanning = (schedule) =>
 	return result;
 };
 
-const decodePlanning = (schedule) =>
+/**
+ * Groups entries by time slot and sorts them chronologically.
+ * Also sorts the product list alphabetically within each group.
+ */
+const groupAndSortEntries = (schedule) =>
 {
-	if (!schedule)
-	{
-		return '';
-	}
-
-	schedule = compressPlanning(schedule);
+	const { DAY_ORDER, TIME_ORDER, WEEKS, DAYS, TIMES, PRODUCTS } = PLANNING_CONSTANTS;
 	const grouped = new Map();
 
 	for (const { weekCode, dayCode, timeCode, productCode } of parseSchedule(schedule))
 	{
-		const { DAY_ORDER, TIME_ORDER, WEEKS, DAYS, TIMES, PRODUCTS } = PLANNING_CONSTANTS;
-
 		// Create a sortable key: Week (1-4), Day Index, Time Index
 		const sortKey = `${weekCode}-${DAY_ORDER[dayCode]}-${TIME_ORDER[timeCode]}`;
 
@@ -155,7 +152,8 @@ const decodePlanning = (schedule) =>
 				week: WEEKS[weekCode],
 				day: DAYS[dayCode],
 				time: TIMES[timeCode],
-				productList: []
+				productList: [],
+				isRecurring: weekCode === '0'
 			});
 		}
 
@@ -167,32 +165,135 @@ const decodePlanning = (schedule) =>
 	}
 
 	const sortedKeys = Array.from(grouped.keys()).sort();
-	const resultParts = [];
 
-	for (const key of sortedKeys)
+	return sortedKeys.map(key =>
 	{
 		const item = grouped.get(key);
 		item.productList.sort((a, b) => a.localeCompare(b, 'fr'));
-		const productString = item.productList.join(', ');
+		return item;
+	});
+};
 
+const decodePlanning = (schedule) =>
+{
+	if (!schedule)
+	{
+		return '';
+	}
+
+	schedule = compressPlanning(schedule);
+	const sortedItems = groupAndSortEntries(schedule);
+
+	return sortedItems.map(item =>
+	{
+		const productString = item.productList.join(', ');
 		let dayLabel = item.day;
-		if (item.week === 'Tous les')
+		if (item.isRecurring)
 		{
 			dayLabel += 's';
 		}
-
-		resultParts.push(`${item.week} ${dayLabel} ${item.time}: ${productString}.`);
-	}
-
-	return resultParts.join(' ');
+		return `${item.week} ${dayLabel} ${item.time}: ${productString}.`;
+	}).join(' ');
 };
 
-// Node.js Compatibility Guard
-// This block will be ignored in Google Apps Script but executed in Node.js
-if (typeof module !== 'undefined')
+/**
+
+ * Takes an encoded schedule, compresses it, and returns it in a sorted canonical form.
+
+ */
+
+const canonicalizeSchedule = (schedule) =>
+
 {
+
+	if (!schedule)
+
+	{
+
+		return '';
+
+	}
+
+
+
+	const compressed = compressPlanning(schedule);
+
+	const entries = Array.from(parseSchedule(compressed));
+
+
+
+	const { DAY_ORDER, TIME_ORDER, PRODUCTS } = PLANNING_CONSTANTS;
+
+
+
+	entries.sort((a, b) =>
+
+	{
+
+		// Sort by Week Code (0 comes before 1, 2, 3, 4)
+
+		if (a.weekCode !== b.weekCode)
+
+		{
+
+			return a.weekCode.localeCompare(b.weekCode);
+
+		}
+
+		// Sort by Day Order
+
+		if (a.dayCode !== b.dayCode)
+
+		{
+
+			return DAY_ORDER[a.dayCode] - DAY_ORDER[b.dayCode];
+
+		}
+
+		// Sort by Time Order
+
+		if (a.timeCode !== b.timeCode)
+
+		{
+
+			return TIME_ORDER[a.timeCode] - TIME_ORDER[b.timeCode];
+
+		}
+
+		// Sort by Product Label (alphabetical)
+
+		const labelA = PRODUCTS[a.productCode] || '';
+
+		const labelB = PRODUCTS[b.productCode] || '';
+
+		return labelA.localeCompare(labelB, 'fr');
+
+	});
+
+
+
+	return entries.map(e => e.weekCode + e.dayCode + e.timeCode + e.productCode).join('');
+
+};
+
+
+
+// Node.js Compatibility Guard
+
+// This block will be ignored in Google Apps Script but executed in Node.js
+
+if (typeof module !== 'undefined')
+
+{
+
 	module.exports = {
+
 		decodePlanning,
-		compressPlanning
+
+		compressPlanning,
+
+		canonicalizeSchedule
+
 	};
+
 }
